@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -31,6 +31,13 @@ func (p *ServerPool) Add(addr string) error {
 		URL:   target,
 		Alive: true,
 		Proxy: httputil.NewSingleHostReverseProxy(target),
+	}
+
+	b.Proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, _ error) {
+
+		// mark backend as dead
+		b.Alive = false
+		w.WriteHeader(502)
 	}
 
 	p.backends = append(p.backends, b)
@@ -70,7 +77,7 @@ func (p *ServerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Using backend:", backend)
+	log.Printf("Backend [%s] | Path: %s\n", backend.URL, r.URL)
 
 	backend.Proxy.ServeHTTP(w, r)
 }
