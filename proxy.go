@@ -57,6 +57,8 @@ func (p *ServerPool) Add(addr string, weight uint8) error {
 	return nil
 }
 
+// NextBackend returns the next available backend based on Weighted Round Robin selection
+// Reference: https://github.com/phusion/nginx/commit/27e94984486058d73157038f7950a0a36ecc6e35
 func (p *ServerPool) NextBackend() *Backend {
 
 	var big *Backend
