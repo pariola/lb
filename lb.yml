@@ -1,0 +1,8 @@
+port: 5000
+health:
+  interval: 30s
+backends:
+  - host: "localhost:6000"
+    weight: 30
+  - host: "localhost:6001"
+    weight: 70
