@@ -65,6 +65,10 @@ func (p *ServerPool) NextBackend() *Backend {
 
 	for _, backend := range p.backends {
 
+		if !backend.Alive {
+			continue
+		}
+
 		backend.currentWeight += backend.weight
 
 		if big == nil || backend.currentWeight > big.currentWeight {
