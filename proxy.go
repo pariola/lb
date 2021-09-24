@@ -2,9 +2,11 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"time"
 )
 
 type Backend struct {
@@ -80,4 +82,43 @@ func (p *ServerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Backend [%s] | Path: %s\n", backend.URL, r.URL)
 
 	backend.Proxy.ServeHTTP(w, r)
+}
+
+// health
+func (p *ServerPool) health() {
+
+	for _, backend := range p.backends {
+
+		conn, err := net.DialTimeout("tcp", backend.URL.Host, 2*time.Second)
+
+		if err != nil {
+
+			if backend.Alive {
+				log.Printf("Backend [%s] no longer alive.\n", backend.URL)
+			}
+
+			backend.Alive = false
+			continue
+		}
+
+		_ = conn.Close()
+
+		if !backend.Alive {
+			log.Printf("Backend [%s] now alive.\n", backend.URL)
+		}
+
+		backend.Alive = true
+	}
+}
+
+// HealthCheck
+func (p *ServerPool) HealthCheck() {
+
+	t := time.NewTicker(30 * time.Second)
+
+	for range t.C {
+		log.Println("...starting health check...")
+		p.health()
+		log.Println("...health check done...")
+	}
 }
