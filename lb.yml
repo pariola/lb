@@ -1,6 +1,7 @@
 port: 5000
 retires: 5
 health:
+  path: /status
   interval: 30s
 backends:
   - host: "localhost:6000"
