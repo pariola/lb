@@ -13,15 +13,21 @@ type Backend struct {
 	URL   *url.URL
 	Alive bool
 	Proxy *httputil.ReverseProxy
+
+	weight        uint8
+	currentWeight uint8
 }
 
 type ServerPool struct {
 	current  int
 	backends []*Backend
+
+	// scheduling
+	totalWeight uint8
 }
 
 // Add
-func (p *ServerPool) Add(addr string) error {
+func (p *ServerPool) Add(addr string, weight uint8) error {
 
 	target, err := url.Parse(addr)
 
@@ -33,6 +39,9 @@ func (p *ServerPool) Add(addr string) error {
 		URL:   target,
 		Alive: true,
 		Proxy: httputil.NewSingleHostReverseProxy(target),
+
+		weight:        weight,
+		currentWeight: weight,
 	}
 
 	b.Proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, _ error) {
@@ -42,6 +51,7 @@ func (p *ServerPool) Add(addr string) error {
 		w.WriteHeader(502)
 	}
 
+	p.totalWeight += weight
 	p.backends = append(p.backends, b)
 
 	return nil
@@ -49,24 +59,22 @@ func (p *ServerPool) Add(addr string) error {
 
 func (p *ServerPool) NextBackend() *Backend {
 
-	next := (p.current + 1) % len(p.backends)
+	var big *Backend
 
-	// move full-cycle
-	l := len(p.backends) + next
-	for i := next; i < l; i++ {
+	for _, backend := range p.backends {
 
-		// normalize with moduli
-		index := i % len(p.backends)
+		backend.currentWeight += backend.weight
 
-		backend := p.backends[index]
-
-		if backend.Alive {
-			p.current += 1
-			return backend
+		if big == nil || backend.currentWeight > big.currentWeight {
+			big = backend
 		}
 	}
 
-	return nil
+	if big != nil {
+		big.currentWeight -= p.totalWeight
+	}
+
+	return big
 }
 
 // ServeHTTP
