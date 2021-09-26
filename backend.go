@@ -4,19 +4,22 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"sync"
 )
 
 type Backend struct {
-	alive  bool
+	m sync.RWMutex
+
+	alive bool
+
 	target *url.URL
 
-	proxy *httputil.ReverseProxy
+	weight, currentWeight int32
 
-	weight        uint8
-	currentWeight uint8
+	proxy *httputil.ReverseProxy
 }
 
-func NewBackend(target *url.URL, weight uint8) *Backend {
+func NewBackend(target *url.URL, weight int32) *Backend {
 
 	b := &Backend{
 		alive:         true,
@@ -30,9 +33,23 @@ func NewBackend(target *url.URL, weight uint8) *Backend {
 	b.proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, _ error) {
 
 		// mark backend as dead
-		b.alive = false
+		b.SetAlive(false)
 		w.WriteHeader(502)
 	}
 
 	return b
+}
+
+// SetAlive for this backend
+func (b *Backend) SetAlive(v bool) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	b.alive = v
+}
+
+// IsAlive returns true when backend is alive
+func (b *Backend) IsAlive() bool {
+	b.m.RLock()
+	defer b.m.RUnlock()
+	return b.alive
 }

@@ -5,19 +5,20 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync/atomic"
 	"time"
 )
 
 type ServerPool struct {
 
 	// scheduling
-	weight uint8
+	weight int32
 
 	backends []*Backend
 }
 
 // Add
-func (p *ServerPool) Add(addr string, weight uint8) error {
+func (p *ServerPool) Add(addr string, weight int32) error {
 
 	target, err := url.Parse(addr)
 
@@ -41,19 +42,20 @@ func (p *ServerPool) NextBackend() *Backend {
 
 	for _, backend := range p.backends {
 
-		if !backend.alive {
+		if !backend.IsAlive() {
 			continue
 		}
 
-		backend.currentWeight += backend.weight
+		atomic.AddInt32(&backend.currentWeight, backend.weight)
 
-		if big == nil || backend.currentWeight > big.currentWeight {
+		if big == nil ||
+			atomic.LoadInt32(&backend.currentWeight) > atomic.LoadInt32(&big.currentWeight) {
 			big = backend
 		}
 	}
 
 	if big != nil {
-		big.currentWeight -= p.weight
+		atomic.AddInt32(&big.currentWeight, -p.weight)
 	}
 
 	return big
@@ -83,21 +85,23 @@ func (p *ServerPool) health() {
 
 		if err != nil {
 
-			if backend.alive {
+			// backend was alive
+			if backend.IsAlive() {
 				log.Printf("Backend [%s] no longer alive.\n", backend.target)
 			}
 
-			backend.alive = false
+			backend.SetAlive(false)
 			continue
 		}
 
 		_ = conn.Close()
 
-		if !backend.alive {
+		// backend was dead
+		if !backend.IsAlive() {
 			log.Printf("Backend [%s] now alive.\n", backend.target)
 		}
 
-		backend.alive = true
+		backend.SetAlive(true)
 	}
 }
 
