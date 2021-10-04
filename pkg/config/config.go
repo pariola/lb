@@ -1,7 +1,10 @@
 package config
 
 import (
+	"io"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 // HealthCheck
@@ -29,7 +32,7 @@ type Config struct {
 }
 
 // Load
-func Load() (*Config, error) {
+func Load(r io.Reader) (*Config, error) {
 
 	// default configurations
 	cfg := &Config{
@@ -40,5 +43,13 @@ func Load() (*Config, error) {
 		},
 	}
 
-	return cfg, nil
+	data, err := io.ReadAll(r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = yaml.Unmarshal(data, cfg)
+
+	return cfg, err
 }
