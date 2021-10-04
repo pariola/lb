@@ -1,18 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+
+	"lb/pkg/config"
 )
 
 func main() {
 
-	p := &ServerPool{
-		backends: []*Backend{},
+	f, err := os.Open("lb.yml")
+
+	if err != nil {
+		panic(err)
 	}
 
-	_ = p.Add("https://www.ask.com")
-	_ = p.Add("https://www.bing.com")
-	_ = p.Add("https://www.google.com")
+	cfg, err := config.Load(f)
 
-	_ = http.ListenAndServe(":8080", p)
+	if err != nil {
+		panic(err)
+	}
+
+	p := NewPool(cfg)
+
+	go p.HealthCheck()
+
+	_ = http.ListenAndServe(fmt.Sprintf(":%d", p.cfg.Port), p)
 }
