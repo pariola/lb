@@ -14,6 +14,8 @@ type ServerPool struct {
 	// scheduling
 	weight int32
 
+	requests uint32
+
 	backends []*Backend
 }
 
@@ -63,6 +65,8 @@ func (p *ServerPool) NextBackend() *Backend {
 
 // ServeHTTP
 func (p *ServerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	atomic.AddUint32(&p.requests, 1)
 
 	backend := p.NextBackend()
 
