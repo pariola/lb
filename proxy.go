@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"sync/atomic"
 	"time"
+
+	"lb/pkg/config"
 )
 
 type ServerPool struct {
@@ -16,7 +18,24 @@ type ServerPool struct {
 
 	requests uint32
 
+	cfg *config.Config
+
 	backends []*Backend
+}
+
+func NewPool(cfg *config.Config) *ServerPool {
+
+	if cfg == nil {
+		return nil
+	}
+
+	p := &ServerPool{
+		cfg: cfg,
+	}
+
+	// TODO
+
+	return p
 }
 
 // Add
@@ -112,7 +131,7 @@ func (p *ServerPool) health() {
 // HealthCheck
 func (p *ServerPool) HealthCheck() {
 
-	t := time.NewTicker(30 * time.Second)
+	t := time.NewTicker(p.cfg.Health.Interval)
 
 	for range t.C {
 		log.Println("...starting health check...")
