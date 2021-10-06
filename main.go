@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 
@@ -40,7 +38,5 @@ func main() {
 
 	p := NewPool(cfg)
 
-	go p.HealthCheck()
-
-	_ = http.ListenAndServe(fmt.Sprintf(":%d", p.cfg.Port), p)
+	p.Start()
 }
