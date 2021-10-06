@@ -2,15 +2,31 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"lb/pkg/config"
 )
 
+var configFile = "lb.yml"
+
 func main() {
 
-	f, err := os.Open("lb.yml")
+	args := os.Args[1:]
+
+	if args[0] != "" {
+		configFile = args[0]
+	}
+
+	fPath, err := filepath.Abs(configFile)
+
+	if err != nil {
+		log.Fatal("no valid configuration file supplied")
+	}
+
+	f, err := os.Open(fPath)
 
 	if err != nil {
 		panic(err)
