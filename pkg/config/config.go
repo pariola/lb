@@ -15,9 +15,8 @@ type HealthCheck struct {
 
 // Backend
 type Backend struct {
-	Host   string      `yaml:"host"`
-	Weight uint8       `yaml:"weight"`
-	Health HealthCheck `yaml:"health"`
+	Host   string `yaml:"host"`
+	Weight uint8  `yaml:"weight"`
 }
 
 // Config
