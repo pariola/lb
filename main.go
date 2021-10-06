@@ -14,7 +14,7 @@ func main() {
 
 	args := os.Args[1:]
 
-	if args[0] != "" {
+	if len(args) > 0 && args[0] != "" {
 		configFile = args[0]
 	}
 
