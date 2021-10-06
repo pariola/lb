@@ -103,6 +103,8 @@ func (p *ServerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // health
 func (p *ServerPool) health() {
 
+	var dead, alive int32
+
 	for _, backend := range p.backends {
 
 		conn, err := net.DialTimeout("tcp", backend.target.Host, 2*time.Second)
@@ -111,9 +113,10 @@ func (p *ServerPool) health() {
 
 			// backend was alive
 			if backend.IsAlive() {
-				log.Printf("Backend [%s] no longer alive.\n", backend.target)
+				log.Printf("health: Backend [%s] no longer alive.\n", backend.target)
 			}
 
+			dead++
 			backend.SetAlive(false)
 			continue
 		}
@@ -122,11 +125,14 @@ func (p *ServerPool) health() {
 
 		// backend was dead
 		if !backend.IsAlive() {
-			log.Printf("Backend [%s] now alive.\n", backend.target)
+			log.Printf("health: Backend [%s] now alive.\n", backend.target)
 		}
 
+		alive++
 		backend.SetAlive(true)
 	}
+
+	log.Printf("health: total %d | alive %d | dead %d\n", alive+dead, alive, dead)
 }
 
 // HealthCheck
@@ -135,9 +141,7 @@ func (p *ServerPool) HealthCheck() {
 	t := time.NewTicker(p.cfg.Health.Interval)
 
 	for range t.C {
-		log.Println("...starting health check...")
 		p.health()
-		log.Println("...health check done...")
 	}
 }
 
