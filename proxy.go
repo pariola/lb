@@ -24,6 +24,7 @@ type ServerPool struct {
 	backends []*Backend
 }
 
+// NewPool creates a new ServerPool with the specified configuration
 func NewPool(cfg *config.Config) *ServerPool {
 
 	if cfg == nil {
@@ -39,7 +40,7 @@ func NewPool(cfg *config.Config) *ServerPool {
 	return p
 }
 
-// Add
+// Add creates a new Backend instance
 func (p *ServerPool) Add(addr string, weight int32) error {
 
 	target, err := url.Parse(addr)
@@ -83,7 +84,7 @@ func (p *ServerPool) NextBackend() *Backend {
 	return big
 }
 
-// ServeHTTP
+// ServeHTTP handles incoming requests and forwards to a backend
 func (p *ServerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	atomic.AddUint32(&p.requests, 1)
@@ -135,7 +136,7 @@ func (p *ServerPool) healthCheck() {
 	log.Printf("health: total %d | alive %d | dead %d\n", alive+dead, alive, dead)
 }
 
-// HealthCheck
+// healthChecker triggers the health check function on a specified interval
 func (p *ServerPool) healthChecker() {
 
 	t := time.NewTicker(p.cfg.Health.Interval)
