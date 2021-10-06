@@ -100,8 +100,8 @@ func (p *ServerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	backend.proxy.ServeHTTP(w, r)
 }
 
-// health
-func (p *ServerPool) health() {
+// healthCheck
+func (p *ServerPool) healthCheck() {
 
 	var dead, alive int32
 
@@ -136,19 +136,19 @@ func (p *ServerPool) health() {
 }
 
 // HealthCheck
-func (p *ServerPool) HealthCheck() {
+func (p *ServerPool) healthChecker() {
 
 	t := time.NewTicker(p.cfg.Health.Interval)
 
 	for range t.C {
-		p.health()
+		p.healthCheck()
 	}
 }
 
 // Start
 func (p *ServerPool) Start() {
 
-	go p.HealthCheck()
+	go p.healthChecker()
 
 	addr := fmt.Sprintf(":%d", p.cfg.Port)
 
