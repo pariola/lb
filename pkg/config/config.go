@@ -16,13 +16,13 @@ type HealthCheck struct {
 // Backend
 type Backend struct {
 	Host   string `yaml:"host"`
-	Weight uint8  `yaml:"weight"`
+	Weight int32  `yaml:"weight"`
 }
 
 // Config
 type Config struct {
-	Port    uint16 `yaml:"port"`
-	Retries uint8  `yaml:"retries"`
+	Port    string `yaml:"port"`
+	Retries int32  `yaml:"retries"`
 
 	// ignored if `health` is in backend spec
 	Health HealthCheck `yaml:"health"`
@@ -35,10 +35,11 @@ func Load(r io.Reader) (*Config, error) {
 
 	// default configurations
 	cfg := &Config{
-		Port:    3000,
-		Retries: 2,
+		Port:    "3000",
+		Retries: 1,
 		Health: HealthCheck{
-			Path: "/",
+			Path:     "/",
+			Interval: 30 * time.Second,
 		},
 	}
 

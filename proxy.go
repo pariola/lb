@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -151,9 +150,7 @@ func (p *ServerPool) Start() {
 
 	go p.healthChecker()
 
-	addr := fmt.Sprintf(":%d", p.cfg.Port)
-
-	if http.ListenAndServe(addr, p) != nil {
+	if http.ListenAndServe(":"+p.cfg.Port, p) != nil {
 		log.Fatal("failed to start proxy!")
 	}
 }
