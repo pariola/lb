@@ -43,7 +43,7 @@ func NewPool(cfg *config.Config) *ServerPool {
 		err := p.Add(b.Host, b.Weight)
 
 		if err != nil {
-			log.Panicf("invalid host: '%s'", b.Host)
+			log.Fatalf("invalid host: '%s'", b.Host)
 		}
 	}
 

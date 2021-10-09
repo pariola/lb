@@ -27,13 +27,13 @@ func main() {
 	f, err := os.Open(fPath)
 
 	if err != nil {
-		panic(err)
+		log.Fatal("failed to open configuration file")
 	}
 
 	cfg, err := config.Load(f)
 
 	if err != nil {
-		panic(err)
+		log.Fatal("failed to parse configuration file")
 	}
 
 	p := NewPool(cfg)
