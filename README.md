@@ -6,6 +6,12 @@ a reverse proxy load-balancing server, It implements the Weighted Round Robin Ba
 
 ## Installing
 
+### Using `go install`
+You can use the command below to compile and install directly to your $GOPATH/bin
+```sh
+go install github.com/pariola/lb@latest
+```
+
 ## How to Use
 After installing, run the command below to start the server: 
 ```sh
