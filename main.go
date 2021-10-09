@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"lb/pkg/config"
+	"github.com/pariola/lb/pkg/config"
 )
 
 var configFile = "lb.yml"

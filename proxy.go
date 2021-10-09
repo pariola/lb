@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"lb/pkg/config"
+	"github.com/pariola/lb/pkg/config"
 )
 
 type ServerPool struct {
@@ -159,6 +159,10 @@ func (p *ServerPool) healthChecker() {
 // Start
 func (p *ServerPool) Start() {
 
+	// immediate health check
+	go p.healthCheck()
+
+	// periodic health checker
 	go p.healthChecker()
 
 	if http.ListenAndServe(":"+p.cfg.Port, p) != nil {

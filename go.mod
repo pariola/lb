@@ -1,4 +1,4 @@
-module lb
+module github.com/pariola/lb
 
 go 1.16
 
