@@ -34,7 +34,18 @@ func NewPool(cfg *config.Config) *ServerPool {
 		cfg: cfg,
 	}
 
-	// TODO
+	for _, b := range cfg.Backends {
+
+		if b.Weight <= 0 {
+			b.Weight = 1
+		}
+
+		err := p.Add(b.Host, b.Weight)
+
+		if err != nil {
+			log.Panicf("invalid host: '%s'", b.Host)
+		}
+	}
 
 	return p
 }
