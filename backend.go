@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"sync"
+	"time"
 )
 
 type Backend struct {
@@ -19,7 +21,7 @@ type Backend struct {
 	proxy *httputil.ReverseProxy
 }
 
-func NewBackend(target *url.URL, weight int32) *Backend {
+func NewBackend(target *url.URL, weight, maxRetries int32) *Backend {
 
 	b := &Backend{
 		alive:         true,
@@ -31,6 +33,18 @@ func NewBackend(target *url.URL, weight int32) *Backend {
 	b.proxy = httputil.NewSingleHostReverseProxy(b.target)
 
 	b.proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, _ error) {
+
+		retries, _ := r.Context().Value("x-retries").(int32)
+
+		if retries < maxRetries {
+			time.Sleep(10 * time.Millisecond)
+
+			// increment retries
+			ctx := context.WithValue(r.Context(), "x-retries", retries+1)
+
+			b.proxy.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
 
 		// mark backend as dead
 		b.SetAlive(false)

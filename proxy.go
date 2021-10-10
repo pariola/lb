@@ -59,7 +59,7 @@ func (p *ServerPool) Add(addr string, weight int32) error {
 		return err
 	}
 
-	b := NewBackend(target, weight)
+	b := NewBackend(target, weight, p.cfg.Retries)
 
 	p.weight += b.weight
 	p.backends = append(p.backends, b)
